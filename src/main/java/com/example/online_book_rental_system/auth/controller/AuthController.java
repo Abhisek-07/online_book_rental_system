@@ -40,7 +40,7 @@ public class AuthController {
         responseDTO.setName(user.getName());
         responseDTO.setRoles(user.getRoles());
 
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(responseDTO);_
     }
 
     @PostMapping("/login")
