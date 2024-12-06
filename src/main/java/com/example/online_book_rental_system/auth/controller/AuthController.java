@@ -2,62 +2,48 @@ package com.example.online_book_rental_system.auth.controller;
 
 import com.example.online_book_rental_system.auth.dto.LoginRequestDTO;
 import com.example.online_book_rental_system.auth.dto.LoginResponseDTO;
-import com.example.online_book_rental_system.auth.dto.UserRequestDTO;
-import com.example.online_book_rental_system.auth.dto.UserResponseDTO;
+import com.example.online_book_rental_system.auth.dto.RegisterUserDto;
 import com.example.online_book_rental_system.auth.model.User;
-import com.example.online_book_rental_system.auth.service.UserService;
+import com.example.online_book_rental_system.auth.service.AuthService;
+import com.example.online_book_rental_system.auth.service.JwtService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+
 
 import jakarta.validation.Valid;
 
+@RequestMapping("/auth")
 @RestController
-@RequestMapping("/api/auth")
 public class AuthController {
+    private final JwtService jwtService;
 
-    private final UserService userService;
+    private final AuthService authenticationService;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
+    public AuthController(JwtService jwtService, AuthService authenticationService) {
+        this.jwtService = jwtService;
+        this.authenticationService = authenticationService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        if (userService.findUserByEmail(userRequestDTO.getEmail()) != null) {
-            return ResponseEntity.badRequest().body("Email already in use!");
-        }
-
-        User user = User.builder()
-                .name(userRequestDTO.getName())
-                .email(userRequestDTO.getEmail())
-                .password(userRequestDTO.getPassword())
-                .build();
-
-        userService.registerUser(user);
-
-        UserResponseDTO responseDTO = new UserResponseDTO();
-        responseDTO.setEmail(user.getEmail());
-        responseDTO.setName(user.getName());
-        responseDTO.setRoles(user.getRoles());
-
-        return ResponseEntity.ok(responseDTO);_
+    public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDto registerUserDto) {
+        User registeredUser = authenticationService.signup(registerUserDto);
+        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
-        User user = userService.findUserByEmail(loginRequestDTO.getEmail());
+    public ResponseEntity<LoginResponseDTO> authenticate(@Valid @RequestBody LoginRequestDTO loginUserDto) {
+        User authenticatedUser = authenticationService.authenticate(loginUserDto);
+        String jwtToken = jwtService.generateToken(authenticatedUser);
 
-        if (user == null || !userService.validatePassword(loginRequestDTO.getPassword(), user.getPassword())) {
-            return ResponseEntity.badRequest().body("Invalid email or password!");
-        }
-
-        // Generate JWT token
-        String token = jwtUtil.generateToken(user);
-
-        LoginResponseDTO responseDTO = new LoginResponseDTO();
-        responseDTO.setMessage("Login successful!");
-        responseDTO.setToken(token);
-
-        return ResponseEntity.ok(responseDTO);
+        LoginResponseDTO loginResponse = new LoginResponseDTO();
+        loginResponse.setToken(jwtToken);
+        loginResponse.setExpiresIn(jwtService.getExpirationTime());
+        loginResponse.setMessage("User logged in successfully");
+        return ResponseEntity.ok(loginResponse);
     }
 }

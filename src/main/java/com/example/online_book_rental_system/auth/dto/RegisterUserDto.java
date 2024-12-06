@@ -2,12 +2,11 @@ package com.example.online_book_rental_system.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserRequestDTO {
+public class RegisterUserDto {
 
     @NotBlank(message = "Name is required")
     @Size(max = 50, message = "Name should not exceed 50 characters")
