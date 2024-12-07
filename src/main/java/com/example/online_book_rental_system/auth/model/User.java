@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
@@ -33,15 +34,16 @@ public class User implements UserDetails {
     @Column(nullable = false, length = 50)
     private String name;
 
-    @Column(nullable = false)
-    private String roles = "USER";
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role = Role.ROLE_USER; // Default to ROLE_USER
 
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(); // No roles or authorities for now
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override

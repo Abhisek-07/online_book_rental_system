@@ -2,6 +2,7 @@ package com.example.online_book_rental_system.auth.service;
 
 import com.example.online_book_rental_system.auth.dto.LoginRequestDTO;
 import com.example.online_book_rental_system.auth.dto.RegisterUserDto;
+import com.example.online_book_rental_system.auth.model.Role;
 import com.example.online_book_rental_system.auth.model.User;
 import com.example.online_book_rental_system.auth.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,6 +32,7 @@ public class AuthService {
         user.setName(input.getName());
         user.setEmail(input.getEmail());
         user.setPassword(passwordEncoder.encode(input.getPassword()));
+        user.setRole(Role.ROLE_USER); // Default role
 
         return userRepository.save(user);
     }

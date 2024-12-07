@@ -3,6 +3,8 @@ package com.example.online_book_rental_system.auth.controller;
 import com.example.online_book_rental_system.auth.dto.LoginRequestDTO;
 import com.example.online_book_rental_system.auth.dto.LoginResponseDTO;
 import com.example.online_book_rental_system.auth.dto.RegisterUserDto;
+import com.example.online_book_rental_system.auth.dto.UserResponseDTO;
+import com.example.online_book_rental_system.auth.model.Role;
 import com.example.online_book_rental_system.auth.model.User;
 import com.example.online_book_rental_system.auth.service.AuthService;
 import com.example.online_book_rental_system.auth.service.JwtService;
@@ -30,9 +32,22 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDto registerUserDto) {
+    public ResponseEntity<UserResponseDTO> register(@Valid @RequestBody RegisterUserDto registerUserDto) {
         User registeredUser = authenticationService.signup(registerUserDto);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+
+        // Generate JWT with the default role
+        String jwtToken = jwtService.generateToken(registeredUser);
+
+        // Create response with token
+        UserResponseDTO response = new UserResponseDTO();
+        response.setEmail(registeredUser.getEmail());
+        response.setName(registeredUser.getName());
+        response.setToken(jwtToken);
+        response.setExpiresIn(jwtService.getExpirationTime());
+        response.setMessage("User registered successfully");
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+
     }
 
     @PostMapping("/login")
